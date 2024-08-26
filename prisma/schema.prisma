@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String        @id @unique
+  email        String
+  firstName    String
+  lastName     String
+  profileImage String
+  customerId   String?       @unique
+  createdAt    DateTime      @default(now())
+  posts        Post[]
+  Site         Site[]
+  Subscription Subscription?
+}
+
+model Site {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  subdirectory String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  imageUrl     String?
+  userId       String?
+  posts        Post[]
+  User         User?    @relation(fields: [userId], references: [id])
+}
+
+model Post {
+  id               String   @id @default(uuid())
+  title            String
+  articleContent   Json
+  smallDescription String
+  image            String
+  slug             String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  userId           String?
+  siteId           String?
+  Site             Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  User             User?    @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  stripeSubscriptionId String   @id @unique
+  interval             String
+  status               String
+  planId               String
+  currentPeriodStart   Int
+  currentPeriodEnd     Int
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  userId               String?  @unique
+  User                 User?    @relation(fields: [userId], references: [id])
+}
